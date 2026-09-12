@@ -1,0 +1,7 @@
+backend/app.jar
+frontend/node_modules
+frontend/dist
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-opensearch-airbnb-learning

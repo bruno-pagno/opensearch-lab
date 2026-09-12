@@ -1,0 +1,22 @@
+module(
+    name = "opensearch-airbnb-learning",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "rules_java", version = "7.11.1")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
+
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    artifacts = [
+        "io.javalin:javalin:6.3.0",
+        "org.opensearch.client:opensearch-java:2.17.0",
+        "org.opensearch.client:opensearch-rest-client:2.17.0",
+        "org.apache.httpcomponents:httpcore:4.4.16",
+        "com.fasterxml.jackson.core:jackson-databind:2.17.2",
+        "org.slf4j:slf4j-simple:2.0.16",
+    ],
+    repositories = ["https://repo1.maven.org/maven2"],
+    fetch_sources = False,
+)
+use_repo(maven, "maven")
