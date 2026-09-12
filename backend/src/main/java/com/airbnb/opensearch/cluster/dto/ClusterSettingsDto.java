@@ -1,4 +1,4 @@
-package com.airbnb.opensearch.phase1.dto;
+package com.airbnb.opensearch.cluster.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;

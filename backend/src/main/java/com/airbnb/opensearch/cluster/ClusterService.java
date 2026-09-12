@@ -1,8 +1,8 @@
-package com.airbnb.opensearch.phase1;
+package com.airbnb.opensearch.cluster;
 
-import com.airbnb.opensearch.phase1.dto.ClusterHealthDto;
-import com.airbnb.opensearch.phase1.dto.ClusterSettingsDto;
-import com.airbnb.opensearch.phase1.dto.NodeDto;
+import com.airbnb.opensearch.cluster.dto.ClusterHealthDto;
+import com.airbnb.opensearch.cluster.dto.ClusterSettingsDto;
+import com.airbnb.opensearch.cluster.dto.NodeDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opensearch.client.Request;
 import org.opensearch.client.RestClient;

@@ -1,4 +1,4 @@
-package com.airbnb.opensearch.phase1;
+package com.airbnb.opensearch.cluster;
 
 import io.javalin.Javalin;
 

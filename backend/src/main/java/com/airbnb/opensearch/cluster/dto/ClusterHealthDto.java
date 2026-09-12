@@ -1,4 +1,4 @@
-package com.airbnb.opensearch.phase1.dto;
+package com.airbnb.opensearch.cluster.dto;
 
 public record ClusterHealthDto(
     String clusterName,

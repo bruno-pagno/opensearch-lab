@@ -1,8 +1,8 @@
 package com.airbnb.opensearch;
 
 import com.airbnb.opensearch.client.OpenSearchClientFactory;
-import com.airbnb.opensearch.phase1.ClusterRoutes;
-import com.airbnb.opensearch.phase1.ClusterService;
+import com.airbnb.opensearch.cluster.ClusterRoutes;
+import com.airbnb.opensearch.cluster.ClusterService;
 import io.javalin.Javalin;
 
 public class Main {
