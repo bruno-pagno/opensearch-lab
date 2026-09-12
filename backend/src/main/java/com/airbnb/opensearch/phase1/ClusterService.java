@@ -1,16 +1,16 @@
 package com.airbnb.opensearch.phase1;
 
+import com.airbnb.opensearch.phase1.dto.ClusterHealthDto;
+import com.airbnb.opensearch.phase1.dto.ClusterSettingsDto;
+import com.airbnb.opensearch.phase1.dto.NodeDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opensearch.client.Request;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.opensearch.OpenSearchClient;
-import org.opensearch.client.opensearch._types.HealthStatus;
-import org.opensearch.client.opensearch.cluster.HealthResponse;
 import org.opensearch.client.opensearch.nodes.NodesInfoResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,44 +18,41 @@ public class ClusterService {
 
     private final OpenSearchClient client;
     private final RestClient restClient;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public ClusterService(OpenSearchClient client, RestClient restClient) {
         this.client = client;
         this.restClient = restClient;
     }
 
-    public Map<String, Object> health() throws IOException {
-        HealthResponse r = client.cluster().health();
-        Map<String, Object> result = new HashMap<>();
-        result.put("clusterName", r.clusterName());
-        result.put("status", r.status().jsonValue());
-        result.put("numberOfNodes", r.numberOfNodes());
-        result.put("numberOfDataNodes", r.numberOfDataNodes());
-        result.put("activePrimaryShards", r.activePrimaryShards());
-        result.put("activeShards", r.activeShards());
-        result.put("relocatingShards", r.relocatingShards());
-        result.put("initializingShards", r.initializingShards());
-        result.put("unassignedShards", r.unassignedShards());
-        return result;
+    public ClusterHealthDto health() throws IOException {
+        var r = client.cluster().health();
+        return new ClusterHealthDto(
+            r.clusterName(),
+            r.status().jsonValue(),
+            r.numberOfNodes(),
+            r.numberOfDataNodes(),
+            r.activePrimaryShards(),
+            r.activeShards(),
+            r.relocatingShards(),
+            r.initializingShards(),
+            r.unassignedShards()
+        );
     }
 
     @SuppressWarnings("unchecked")
-    public List<Map<String, Object>> nodes() throws IOException {
+    public List<NodeDto> nodes() throws IOException {
         NodesInfoResponse info = client.nodes().info();
 
         var statsResponse = restClient.performRequest(new Request("GET", "/_nodes/stats/jvm,fs"));
         Map<String, Object> statsJson = mapper.readValue(statsResponse.getEntity().getContent(), Map.class);
         Map<String, Object> statsNodes = (Map<String, Object>) statsJson.get("nodes");
 
-        List<Map<String, Object>> nodes = new ArrayList<>();
+        List<NodeDto> nodes = new ArrayList<>();
         info.nodes().forEach((id, node) -> {
-            Map<String, Object> n = new HashMap<>();
-            n.put("id", id);
-            n.put("name", node.name());
-            n.put("host", node.host());
-            n.put("version", node.version());
-            n.put("roles", node.roles().stream().map(r -> r.jsonValue()).toList());
+            Long heapUsedBytes = null, heapMaxBytes = null;
+            Double heapPercent = null;
+            Long diskTotalBytes = null, diskAvailableBytes = null;
 
             if (statsNodes != null) {
                 Map<String, Object> ns = (Map<String, Object>) statsNodes.get(id);
@@ -64,32 +61,45 @@ public class ClusterService {
                     if (jvm != null) {
                         Map<String, Object> mem = (Map<String, Object>) jvm.get("mem");
                         if (mem != null) {
-                            long heapUsed = ((Number) mem.get("heap_used_in_bytes")).longValue();
-                            long heapMax = ((Number) mem.get("heap_max_in_bytes")).longValue();
-                            n.put("heapUsedBytes", heapUsed);
-                            n.put("heapMaxBytes", heapMax);
-                            n.put("heapPercent", heapMax > 0 ? (heapUsed * 100.0 / heapMax) : 0);
+                            heapUsedBytes = ((Number) mem.get("heap_used_in_bytes")).longValue();
+                            heapMaxBytes = ((Number) mem.get("heap_max_in_bytes")).longValue();
+                            heapPercent = heapMaxBytes > 0 ? (heapUsedBytes * 100.0 / heapMaxBytes) : 0.0;
                         }
                     }
                     Map<String, Object> fs = (Map<String, Object>) ns.get("fs");
                     if (fs != null) {
                         Map<String, Object> total = (Map<String, Object>) fs.get("total");
                         if (total != null) {
-                            n.put("diskTotalBytes", ((Number) total.get("total_in_bytes")).longValue());
-                            n.put("diskAvailableBytes", ((Number) total.get("available_in_bytes")).longValue());
+                            diskTotalBytes = ((Number) total.get("total_in_bytes")).longValue();
+                            diskAvailableBytes = ((Number) total.get("available_in_bytes")).longValue();
                         }
                     }
                 }
             }
 
-            nodes.add(n);
+            nodes.add(new NodeDto(
+                id,
+                node.name(),
+                node.host(),
+                node.version(),
+                node.roles().stream().map(r -> r.jsonValue()).toList(),
+                heapUsedBytes,
+                heapMaxBytes,
+                heapPercent,
+                diskTotalBytes,
+                diskAvailableBytes
+            ));
         });
         return nodes;
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Object> settings() throws IOException {
+    public ClusterSettingsDto settings() throws IOException {
         var response = restClient.performRequest(new Request("GET", "/_cluster/settings?include_defaults=false"));
-        return mapper.readValue(response.getEntity().getContent(), Map.class);
+        Map<String, Object> raw = mapper.readValue(response.getEntity().getContent(), Map.class);
+        return new ClusterSettingsDto(
+            (Map<String, Object>) raw.get("persistent"),
+            (Map<String, Object>) raw.get("transient")
+        );
     }
 }
