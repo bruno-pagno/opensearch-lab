@@ -30,30 +30,49 @@ interface ClusterSettings {
   transient: Record<string, unknown>
 }
 
-const STATUS_COLORS = {
-  green: 'bg-green-500',
-  yellow: 'bg-yellow-400',
-  red: 'bg-red-500',
+const STATUS_DOT: Record<string, string> = {
+  green:  'bg-balearic',
+  yellow: 'bg-ariel',
+  red:    'bg-rausch',
 }
 
-const STATUS_TEXT = {
-  green: 'text-green-400',
-  yellow: 'text-yellow-400',
-  red: 'text-red-400',
+const STATUS_LABEL: Record<string, string> = {
+  green:  'text-balearic',
+  yellow: 'text-ariel',
+  red:    'text-rausch',
 }
 
 function formatBytes(bytes: number): string {
   const gb = bytes / 1024 / 1024 / 1024
   if (gb >= 1) return `${gb.toFixed(1)} GB`
-  const mb = bytes / 1024 / 1024
-  return `${mb.toFixed(0)} MB`
+  return `${(bytes / 1024 / 1024).toFixed(0)} MB`
 }
 
-function ProgressBar({ value, className }: { value: number; className: string }) {
+function ProgressBar({ value, color }: { value: number; color: string }) {
   return (
-    <div className="w-full bg-gray-700 rounded-full h-1.5 mt-1">
-      <div className={`h-1.5 rounded-full ${className}`} style={{ width: `${Math.min(value, 100)}%` }} />
+    <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
+      <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${Math.min(value, 100)}%` }} />
     </div>
+  )
+}
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-xs font-semibold text-foggy uppercase tracking-widest mb-3">{children}</h2>
+  )
+}
+
+function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`bg-white border border-gray-200 rounded-xl shadow-sm ${className}`}>
+      {children}
+    </div>
+  )
+}
+
+function ErrorBox({ message }: { message: string }) {
+  return (
+    <div className="text-rausch text-sm bg-red-50 border border-red-200 rounded-xl p-4">{message}</div>
   )
 }
 
@@ -92,90 +111,96 @@ export default function ClusterDashboard() {
   const status = health.data?.status ?? 'red'
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-8">
 
       {/* Health */}
       <section>
-        <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">Cluster Health</h2>
-        {health.error ? (
-          <div className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg p-4">{health.error}</div>
-        ) : health.loading ? (
-          <div className="text-gray-500 text-sm">Loading...</div>
-        ) : health.data && (
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <span className={`w-3 h-3 rounded-full ${STATUS_COLORS[status]}`} />
-              <span className={`text-lg font-semibold uppercase ${STATUS_TEXT[status]}`}>{status}</span>
-              <span className="text-gray-400 text-sm">— {health.data.clusterName}</span>
+        <SectionHeading>Cluster Health</SectionHeading>
+        {health.error ? <ErrorBox message={health.error} /> :
+         health.loading ? <p className="text-sm text-foggy">Loading...</p> :
+         health.data && (
+          <Card className="p-6">
+            <div className="flex items-center gap-2.5 mb-5">
+              <span className={`w-2.5 h-2.5 rounded-full ${STATUS_DOT[status]}`} />
+              <span className={`text-base font-semibold uppercase tracking-wide ${STATUS_LABEL[status]}`}>{status}</span>
+              <span className="text-foggy text-sm">{health.data.clusterName}</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                { label: 'Nodes', value: health.data.numberOfNodes },
-                { label: 'Data Nodes', value: health.data.numberOfDataNodes },
-                { label: 'Active Shards', value: health.data.activeShards },
-                { label: 'Primary Shards', value: health.data.activePrimaryShards },
-                { label: 'Relocating', value: health.data.relocatingShards },
-                { label: 'Initializing', value: health.data.initializingShards },
-                { label: 'Unassigned', value: health.data.unassignedShards },
-              ].map(({ label, value }) => (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+              {([
+                ['Nodes',           health.data.numberOfNodes],
+                ['Data nodes',      health.data.numberOfDataNodes],
+                ['Active shards',   health.data.activeShards],
+                ['Primary shards',  health.data.activePrimaryShards],
+                ['Relocating',      health.data.relocatingShards],
+                ['Initializing',    health.data.initializingShards],
+                ['Unassigned',      health.data.unassignedShards],
+              ] as [string, number][]).map(([label, value]) => (
                 <div key={label}>
-                  <p className="text-xs text-gray-500">{label}</p>
-                  <p className="text-xl font-mono font-semibold">{value}</p>
+                  <p className="text-xs text-foggy mb-0.5">{label}</p>
+                  <p className="text-2xl font-bold text-hof">{value}</p>
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         )}
       </section>
 
       {/* Nodes */}
       <section>
-        <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">Nodes</h2>
-        {nodes.error ? (
-          <div className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg p-4">{nodes.error}</div>
-        ) : nodes.loading ? (
-          <div className="text-gray-500 text-sm">Loading...</div>
-        ) : (
+        <SectionHeading>Nodes</SectionHeading>
+        {nodes.error ? <ErrorBox message={nodes.error} /> :
+         nodes.loading ? <p className="text-sm text-foggy">Loading...</p> : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {nodes.data?.map(node => (
-              <div key={node.id} className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+              <Card key={node.id} className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="font-medium">{node.name}</p>
-                    <p className="text-xs text-gray-500 font-mono">{node.host}</p>
+                    <p className="font-semibold text-hof">{node.name}</p>
+                    <p className="text-xs text-foggy font-mono mt-0.5">{node.host}</p>
                   </div>
-                  <span className="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded">v{node.version}</span>
+                  <span className="text-xs text-foggy bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
+                    v{node.version}
+                  </span>
                 </div>
-                <div className="flex flex-wrap gap-1 mb-3">
+
+                <div className="flex flex-wrap gap-1.5 mb-4">
                   {node.roles.map(role => (
-                    <span key={role} className="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded">{role}</span>
+                    <span key={role} className="text-xs font-medium bg-red-50 text-rausch border border-red-200 px-2 py-0.5 rounded-full">
+                      {role}
+                    </span>
                   ))}
                 </div>
+
                 {node.heapPercent !== undefined && (
-                  <div className="mb-2">
-                    <div className="flex justify-between text-xs text-gray-400">
+                  <div className="mb-3">
+                    <div className="flex justify-between text-xs text-foggy">
                       <span>Heap</span>
-                      <span>{node.heapPercent.toFixed(1)}% — {formatBytes(node.heapUsedBytes!)} / {formatBytes(node.heapMaxBytes!)}</span>
+                      <span className="font-medium text-hof">
+                        {node.heapPercent.toFixed(1)}% &mdash; {formatBytes(node.heapUsedBytes!)} / {formatBytes(node.heapMaxBytes!)}
+                      </span>
                     </div>
                     <ProgressBar
                       value={node.heapPercent}
-                      className={node.heapPercent > 85 ? 'bg-red-500' : node.heapPercent > 70 ? 'bg-yellow-400' : 'bg-blue-500'}
+                      color={node.heapPercent > 85 ? 'bg-rausch' : node.heapPercent > 70 ? 'bg-ariel' : 'bg-balearic'}
                     />
                   </div>
                 )}
+
                 {node.diskTotalBytes && node.diskAvailableBytes && (
                   <div>
-                    <div className="flex justify-between text-xs text-gray-400">
+                    <div className="flex justify-between text-xs text-foggy">
                       <span>Disk available</span>
-                      <span>{formatBytes(node.diskAvailableBytes)} / {formatBytes(node.diskTotalBytes)}</span>
+                      <span className="font-medium text-hof">
+                        {formatBytes(node.diskAvailableBytes)} / {formatBytes(node.diskTotalBytes)}
+                      </span>
                     </div>
                     <ProgressBar
                       value={(1 - node.diskAvailableBytes / node.diskTotalBytes) * 100}
-                      className="bg-gray-500"
+                      color="bg-gray-400"
                     />
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         )}
@@ -183,30 +208,28 @@ export default function ClusterDashboard() {
 
       {/* Settings */}
       <section>
-        <h2 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">Cluster Settings</h2>
-        {settings.error ? (
-          <div className="text-red-400 text-sm bg-red-950 border border-red-800 rounded-lg p-4">{settings.error}</div>
-        ) : settings.loading ? (
-          <div className="text-gray-500 text-sm">Loading...</div>
-        ) : settings.data && (
-          <div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
-            {[
-              { label: 'Persistent', data: settings.data.persistent },
-              { label: 'Transient', data: settings.data.transient },
-            ].map(({ label, data }) => (
-              <div key={label} className="border-b border-gray-800 last:border-0">
-                <div className="px-4 py-2 bg-gray-800/50">
-                  <p className="text-xs font-medium text-gray-400">{label}</p>
+        <SectionHeading>Cluster Settings</SectionHeading>
+        {settings.error ? <ErrorBox message={settings.error} /> :
+         settings.loading ? <p className="text-sm text-foggy">Loading...</p> :
+         settings.data && (
+          <Card className="overflow-hidden">
+            {([
+              ['Persistent', settings.data.persistent],
+              ['Transient',  settings.data.transient],
+            ] as [string, Record<string, unknown>][]).map(([label, data]) => (
+              <div key={label} className="border-b border-gray-100 last:border-0">
+                <div className="px-5 py-2.5 bg-gray-50 border-b border-gray-100">
+                  <p className="text-xs font-semibold text-foggy uppercase tracking-wide">{label}</p>
                 </div>
                 {Object.keys(data).length === 0 ? (
-                  <p className="px-4 py-3 text-xs text-gray-600 italic">No settings configured</p>
+                  <p className="px-5 py-3 text-xs text-gray-400 italic">No settings configured</p>
                 ) : (
                   <table className="w-full text-xs font-mono">
                     <tbody>
                       {Object.entries(data).map(([key, value]) => (
-                        <tr key={key} className="border-t border-gray-800/50">
-                          <td className="px-4 py-2 text-gray-400 w-1/2">{key}</td>
-                          <td className="px-4 py-2 text-gray-200">{JSON.stringify(value)}</td>
+                        <tr key={key} className="border-t border-gray-50">
+                          <td className="px-5 py-2 text-foggy w-1/2">{key}</td>
+                          <td className="px-5 py-2 text-hof">{JSON.stringify(value)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -214,7 +237,7 @@ export default function ClusterDashboard() {
                 )}
               </div>
             ))}
-          </div>
+          </Card>
         )}
       </section>
 
