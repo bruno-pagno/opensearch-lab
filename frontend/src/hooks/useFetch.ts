@@ -4,6 +4,7 @@ export function useFetch<T>(url: string, interval = 10000) {
   const [data, setData] = useState<T | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -11,6 +12,7 @@ export function useFetch<T>(url: string, interval = 10000) {
         const res = await fetch(url)
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
         setData(await res.json())
+        setLastUpdated(new Date())
         setError(null)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Unknown error')
@@ -24,5 +26,5 @@ export function useFetch<T>(url: string, interval = 10000) {
     return () => clearInterval(id)
   }, [url, interval])
 
-  return { data, error, loading }
+  return { data, error, loading, lastUpdated }
 }
