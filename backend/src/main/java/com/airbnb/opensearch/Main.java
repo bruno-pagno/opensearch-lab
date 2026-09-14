@@ -3,6 +3,8 @@ package com.airbnb.opensearch;
 import com.airbnb.opensearch.client.OpenSearchClientFactory;
 import com.airbnb.opensearch.cluster.ClusterRoutes;
 import com.airbnb.opensearch.cluster.ClusterService;
+import com.airbnb.opensearch.index.IndexRoutes;
+import com.airbnb.opensearch.index.IndexService;
 import io.javalin.Javalin;
 
 public class Main {
@@ -12,6 +14,7 @@ public class Main {
 
         OpenSearchClientFactory factory = new OpenSearchClientFactory(opensearchUrl);
         ClusterService clusterService = new ClusterService(factory.client(), factory.restClient());
+        IndexService indexService = new IndexService(factory.restClient());
 
         Javalin app = Javalin.create(config ->
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()))
@@ -22,6 +25,7 @@ public class Main {
         );
 
         ClusterRoutes.register(app, clusterService);
+        IndexRoutes.register(app, indexService);
 
         app.start(8080);
     }

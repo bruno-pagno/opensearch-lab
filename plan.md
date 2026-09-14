@@ -6,7 +6,7 @@ Build a deep, practical understanding of OpenSearch infrastructure — not just 
 
 ---
 
-## Current Phase: Phase 1 — Cluster Fundamentals
+## Current Phase: Phase 2 — Index Management
 
 ### What's implemented
 
@@ -36,8 +36,8 @@ Build a deep, practical understanding of OpenSearch infrastructure — not just 
 
 ## Next Steps
 
-### Phase 2 — Index Management
-- Create, update, delete, open/close indices
+### Phase 2 — Index Management ✅ Done
+- Create, delete indices with configurable shards/replicas
 - Define explicit mappings for the Listing document (text, keyword, geo_point, date, nested)
 - Index settings: `number_of_shards`, `number_of_replicas`, `refresh_interval`
 - Index templates and component templates

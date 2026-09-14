@@ -1,6 +1,17 @@
+import { useState } from 'react'
 import ClusterDashboard from './pages/ClusterDashboard'
+import IndicesDashboard from './pages/IndicesDashboard'
+
+type Page = 'cluster' | 'indices'
+
+const NAV: { id: Page; label: string }[] = [
+  { id: 'cluster', label: 'Cluster' },
+  { id: 'indices', label: 'Indices' },
+]
 
 export default function App() {
+  const [page, setPage] = useState<Page>('cluster')
+
   return (
     <div className="min-h-screen bg-air-bg text-hof">
       <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center gap-3">
@@ -16,16 +27,26 @@ export default function App() {
 
       <nav className="bg-white border-b border-gray-200 px-8">
         <ul className="flex">
-          <li>
-            <button className="px-1 py-3 text-sm font-semibold text-rausch border-b-2 border-rausch mr-6">
-              Phase 1 — Cluster
-            </button>
-          </li>
+          {NAV.map(({ id, label }) => (
+            <li key={id}>
+              <button
+                onClick={() => setPage(id)}
+                className={`px-4 py-3 text-sm font-semibold mr-2 border-b-2 transition-colors ${
+                  page === id
+                    ? 'text-rausch border-rausch'
+                    : 'text-foggy border-transparent hover:text-hof'
+                }`}
+              >
+                {label}
+              </button>
+            </li>
+          ))}
         </ul>
       </nav>
 
       <main className="px-8 py-6 max-w-5xl">
-        <ClusterDashboard />
+        {page === 'cluster' && <ClusterDashboard />}
+        {page === 'indices' && <IndicesDashboard />}
       </main>
     </div>
   )

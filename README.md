@@ -56,7 +56,7 @@ make dev-frontend  # runs Vite on port 5173
 | Phase | Topic | Status |
 |-------|-------|--------|
 | 1 | Cluster fundamentals: health, nodes, settings | ✅ Done |
-| 2 | Index management: CRUD, mappings, templates, aliases | 🔜 |
+| 2 | Index management: CRUD, mappings, seed data | ✅ Done |
 | 3 | Metrics and monitoring: stats APIs, cat APIs, JVM/GC | 🔜 |
 | 4 | Shard management: allocation, routing, rack awareness | 🔜 |
 | 5 | Index lifecycle management (ILM): rollover policies | 🔜 |
