@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import ClusterDashboard from './pages/ClusterDashboard'
 import IndicesDashboard from './pages/IndicesDashboard'
+import MetricsDashboard from './pages/MetricsDashboard'
 
-type Page = 'cluster' | 'indices'
+type Page = 'cluster' | 'indices' | 'metrics'
 
 const NAV: { id: Page; label: string }[] = [
   { id: 'cluster', label: 'Cluster' },
   { id: 'indices', label: 'Indices' },
+  { id: 'metrics', label: 'Metrics' },
 ]
 
 export default function App() {
@@ -45,8 +47,9 @@ export default function App() {
       </nav>
 
       <main className="px-8 py-6 max-w-5xl">
-        {page === 'cluster' && <ClusterDashboard />}
-        {page === 'indices' && <IndicesDashboard />}
+        {page === 'cluster'  && <ClusterDashboard />}
+        {page === 'indices'  && <IndicesDashboard />}
+        {page === 'metrics'  && <MetricsDashboard />}
       </main>
     </div>
   )
