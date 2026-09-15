@@ -7,6 +7,8 @@ import com.airbnb.opensearch.index.IndexRoutes;
 import com.airbnb.opensearch.index.IndexService;
 import com.airbnb.opensearch.metrics.MetricsRoutes;
 import com.airbnb.opensearch.metrics.MetricsService;
+import com.airbnb.opensearch.search.SearchRoutes;
+import com.airbnb.opensearch.search.SearchService;
 import io.javalin.Javalin;
 
 public class Main {
@@ -18,6 +20,7 @@ public class Main {
         ClusterService clusterService   = new ClusterService(factory.client(), factory.restClient());
         IndexService   indexService     = new IndexService(factory.restClient());
         MetricsService metricsService   = new MetricsService(factory.restClient());
+        SearchService  searchService    = new SearchService(factory.restClient());
 
         Javalin app = Javalin.create(config ->
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()))
@@ -30,6 +33,7 @@ public class Main {
         ClusterRoutes.register(app, clusterService);
         IndexRoutes.register(app, indexService);
         MetricsRoutes.register(app, metricsService);
+        SearchRoutes.register(app, searchService);
 
         app.start(8080);
     }

@@ -63,12 +63,10 @@ public class IndexService {
 
     public void seedListings() throws IOException {
         String index = "airbnb-listings";
-
-        boolean exists = indexExists(index);
-        if (!exists) {
+        if (!indexExists(index)) {
             createListingsIndex(index);
+            bulkIndexListings(index);
         }
-        bulkIndexListings(index);
     }
 
     private boolean indexExists(String name) {
@@ -107,25 +105,30 @@ public class IndexService {
 
     private void bulkIndexListings(String name) throws IOException {
         String[][] listings = {
-            {"Cozy Studio in the Mission District",    "120.0", "Entire home/apt", "4.9", "312", "Maria G.",  "San Francisco", "US", "WiFi,Kitchen,Washer"},
-            {"Luxurious Penthouse with City Views",    "450.0", "Entire home/apt", "4.8", "198", "James L.",  "New York",      "US", "WiFi,Gym,Doorman,Pool"},
-            {"Beachfront Villa with Private Pool",     "380.0", "Entire home/apt", "4.7", "421", "Carlos R.", "Miami",         "US", "WiFi,Pool,BBQ,Beach"},
-            {"Modern Loft in the West Loop",           "175.0", "Entire home/apt", "4.6", "287", "Ashley T.", "Chicago",       "US", "WiFi,Kitchen,Parking"},
-            {"Charming Cottage with Garden",           "140.0", "Entire home/apt", "4.8", "503", "Sam W.",    "Portland",      "US", "WiFi,Garden,Fireplace"},
-            {"Sunny Apartment Near Venice Beach",      "160.0", "Private room",    "4.5", "176", "Nina P.",   "Los Angeles",   "US", "WiFi,Kitchen,Patio"},
-            {"Historic Brownstone Room in Beacon Hill","95.0",  "Private room",    "4.7", "364", "Ethan M.",  "Boston",        "US", "WiFi,Kitchen"},
-            {"Mountain Retreat with Hot Tub",          "210.0", "Entire home/apt", "4.9", "412", "Laura K.",  "Denver",        "US", "WiFi,HotTub,Fireplace,Parking"},
-            {"Art Deco Suite in South Beach",          "230.0", "Entire home/apt", "4.6", "143", "Diego F.",  "Miami",         "US", "WiFi,Pool,AC,CityView"},
-            {"Quiet Room Near Central Park",           "110.0", "Private room",    "4.4", "258", "Priya S.",  "New York",      "US", "WiFi,Kitchen,Gym"}
+            {"Cozy Studio in the Mission District",     "120.0", "Entire home/apt", "4.9", "312", "Maria G.",  "San Francisco", "US", "WiFi,Kitchen,Washer",          "Bright cozy studio in the heart of the Mission. Walk to cafes, tacos, and BART."},
+            {"Luxurious Penthouse with City Views",     "450.0", "Entire home/apt", "4.8", "198", "James L.",  "New York",      "US", "WiFi,Gym,Doorman,Pool",         "Floor-to-ceiling windows over Manhattan skyline. Designer kitchen and 24-hour doorman."},
+            {"Beachfront Villa with Private Pool",      "380.0", "Entire home/apt", "4.7", "421", "Carlos R.", "Miami",         "US", "WiFi,Pool,BBQ,Beach",           "Step onto the sand from your private deck. Heated pool, outdoor BBQ, and ocean views."},
+            {"Modern Loft in the West Loop",            "175.0", "Entire home/apt", "4.6", "287", "Ashley T.", "Chicago",       "US", "WiFi,Kitchen,Parking",          "Open-plan loft with exposed brick and industrial finishes, steps from top restaurants."},
+            {"Charming Cottage with Garden",            "140.0", "Entire home/apt", "4.8", "503", "Sam W.",    "Portland",      "US", "WiFi,Garden,Fireplace",         "Quiet cottage with a private garden and fireplace. Bikes included, farmers market nearby."},
+            {"Sunny Apartment Near Venice Beach",       "160.0", "Private room",    "4.5", "176", "Nina P.",   "Los Angeles",   "US", "WiFi,Kitchen,Patio",            "Sun-soaked private room two blocks from the Venice boardwalk and beach volleyball courts."},
+            {"Historic Brownstone Room in Beacon Hill", "95.0",  "Private room",    "4.7", "364", "Ethan M.",  "Boston",        "US", "WiFi,Kitchen",                  "Cozy private room in a 19th-century brownstone. Walk to the Freedom Trail and Boston Common."},
+            {"Mountain Retreat with Hot Tub",           "210.0", "Entire home/apt", "4.9", "412", "Laura K.",  "Denver",        "US", "WiFi,HotTub,Fireplace,Parking", "Secluded mountain cabin with a wood-burning fireplace and outdoor hot tub under the stars."},
+            {"Art Deco Suite in South Beach",           "230.0", "Entire home/apt", "4.6", "143", "Diego F.",  "Miami",         "US", "WiFi,Pool,AC,CityView",         "Restored art deco suite with original terrazzo floors, steps from the beach and nightlife."},
+            {"Quiet Room Near Central Park",            "110.0", "Private room",    "4.4", "258", "Priya S.",  "New York",      "US", "WiFi,Kitchen,Gym",              "Peaceful private room on the Upper West Side, one block from Central Park jogging paths."},
+            {"Treehouse Studio in the Hills",           "195.0", "Entire home/apt", "5.0", "89",  "Jake R.",   "Los Angeles",   "US", "WiFi,Patio,Parking",            "Unique treehouse studio perched in the Hollywood Hills with panoramic city views."},
+            {"Waterfront Condo with Kayaks",            "270.0", "Entire home/apt", "4.8", "331", "Mei L.",    "Seattle",       "US", "WiFi,Kitchen,Kayaks,Parking",   "Modern waterfront condo on Lake Union. Kayaks included, walk to Pike Place Market."},
+            {"Desert Adobe near Saguaros",              "155.0", "Entire home/apt", "4.7", "207", "Rosa M.",   "Scottsdale",    "US", "WiFi,Pool,HotTub,Patio",        "Serene adobe home surrounded by giant saguaro cacti. Heated pool, mountain trail access."},
+            {"Cozy Cabin by the River",                 "130.0", "Entire home/apt", "4.9", "478", "Tom B.",    "Asheville",     "US", "WiFi,Fireplace,Patio,BBQ",      "Rustic cabin beside a mountain stream with fireplace and wraparound porch."},
+            {"Stylish Studio in SoHo",                  "220.0", "Entire home/apt", "4.5", "165", "Ava K.",    "New York",      "US", "WiFi,Kitchen,AC",               "Chic SoHo studio with exposed brick and designer furniture, blocks from galleries and shops."}
         };
 
         StringBuilder bulk = new StringBuilder();
         for (String[] l : listings) {
             bulk.append("{\"index\":{}}\n");
             bulk.append("""
-                {"title":"%s","description":"A wonderful place to stay.","price_per_night":%s,"room_type":"%s","rating":%s,"num_reviews":%s,"host_name":"%s","city":"%s","country":"%s","amenities":[%s]}
+                {"title":"%s","description":"%s","price_per_night":%s,"room_type":"%s","rating":%s,"num_reviews":%s,"host_name":"%s","city":"%s","country":"%s","amenities":[%s]}
                 """.formatted(
-                    l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
+                    l[0], l[9], l[1], l[2], l[3], l[4], l[5], l[6], l[7],
                     java.util.Arrays.stream(l[8].split(","))
                         .map(a -> "\"" + a + "\"")
                         .collect(java.util.stream.Collectors.joining(","))
