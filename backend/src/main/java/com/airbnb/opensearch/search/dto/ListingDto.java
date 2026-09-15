@@ -13,5 +13,6 @@ public record ListingDto(
     String hostName,
     String city,
     String country,
-    List<String> amenities
+    List<String> amenities,
+    double score
 ) {}
