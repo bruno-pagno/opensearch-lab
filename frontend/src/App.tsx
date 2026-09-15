@@ -3,8 +3,13 @@ import ClusterDashboard from './pages/ClusterDashboard'
 import IndicesDashboard from './pages/IndicesDashboard'
 import MetricsDashboard from './pages/MetricsDashboard'
 import SearchPage from './pages/SearchPage'
+import LearnPage from './pages/LearnPage'
+import LabsPage from './pages/LabsPage'
+import LabDetail from './pages/LabDetail'
+import { navigate } from './utils/navigate'
 
 type AdminTab = 'cluster' | 'indices' | 'metrics'
+type Page = 'search' | 'admin' | 'learn' | 'labs' | 'lab-detail'
 
 const ADMIN_NAV: { id: AdminTab; label: string }[] = [
   { id: 'cluster', label: 'Cluster' },
@@ -12,21 +17,29 @@ const ADMIN_NAV: { id: AdminTab; label: string }[] = [
   { id: 'metrics', label: 'Metrics' },
 ]
 
-function isAdmin() {
-  return window.location.hash.startsWith('#/admin')
+function getPage(): Page {
+  const p = window.location.pathname
+  if (p.startsWith('/admin')) return 'admin'
+  if (p.startsWith('/learn')) return 'learn'
+  if (p.startsWith('/labs/')) return 'lab-detail'
+  if (p === '/labs') return 'labs'
+  return 'search'
 }
 
 export default function App() {
-  const [admin, setAdmin] = useState(isAdmin)
+  const [page, setPage] = useState<Page>(getPage)
   const [tab, setTab] = useState<AdminTab>('cluster')
 
   useEffect(() => {
-    const onHash = () => setAdmin(isAdmin())
-    window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
+    const onPop = () => setPage(getPage())
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  if (!admin) return <SearchPage />
+  if (page === 'learn') return <LearnPage />
+  if (page === 'labs') return <LabsPage />
+  if (page === 'lab-detail') return <LabDetail />
+  if (page === 'search') return <SearchPage />
 
   return (
     <div className="min-h-screen bg-air-bg text-hof">
@@ -41,16 +54,25 @@ export default function App() {
             <p className="text-xs text-foggy leading-tight">Airbnb Infrastructure Lab</p>
           </div>
         </div>
-        <a
-          href="#/"
-          onClick={() => { window.location.hash = '#/'; setAdmin(false) }}
-          className="text-sm text-foggy hover:text-rausch font-medium transition-colors flex items-center gap-1"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to search
-        </a>
+        <div className="flex items-center gap-4">
+          <a
+            href="/learn"
+            onClick={e => { e.preventDefault(); navigate('/learn') }}
+            className="text-sm text-foggy hover:text-balearic font-medium transition-colors"
+          >
+            Learn
+          </a>
+          <a
+            href="/"
+            onClick={e => { e.preventDefault(); navigate('/') }}
+            className="text-sm text-foggy hover:text-rausch font-medium transition-colors flex items-center gap-1"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to search
+          </a>
+        </div>
       </header>
 
       <nav className="bg-white border-b border-gray-200 px-8">

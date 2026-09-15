@@ -61,6 +61,12 @@ public class IndexService {
         return (Map<String, Object>) indexData.getOrDefault("mappings", Map.of());
     }
 
+    public void setReplicas(String indexName, int count) throws IOException {
+        var request = new Request("PUT", "/" + indexName + "/_settings");
+        request.setJsonEntity("{\"index\":{\"number_of_replicas\":" + count + "}}");
+        restClient.performRequest(request);
+    }
+
     public void seedListings() throws IOException {
         String index = "airbnb-listings";
         if (!indexExists(index)) {

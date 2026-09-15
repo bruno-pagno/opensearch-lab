@@ -94,6 +94,27 @@ public class ClusterService {
     }
 
     @SuppressWarnings("unchecked")
+    public Map<String, Object> allocationExplain() throws IOException {
+        try {
+            var response = restClient.performRequest(new Request("GET", "/_cluster/allocation/explain"));
+            return mapper.readValue(response.getEntity().getContent(), Map.class);
+        } catch (org.opensearch.client.ResponseException e) {
+            if (e.getResponse().getStatusLine().getStatusCode() == 400) {
+                return Map.of("message", "All shards are assigned — cluster is healthy.");
+            }
+            throw e;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> shards(String index) throws IOException {
+        var response = restClient.performRequest(
+            new Request("GET", "/_cat/shards/" + index + "?format=json&h=index,shard,prirep,state,node,store,unassigned.reason,unassigned.details")
+        );
+        return mapper.readValue(response.getEntity().getContent(), List.class);
+    }
+
+    @SuppressWarnings("unchecked")
     public ClusterSettingsDto settings() throws IOException {
         var response = restClient.performRequest(new Request("GET", "/_cluster/settings?include_defaults=false"));
         Map<String, Object> raw = mapper.readValue(response.getEntity().getContent(), Map.class);

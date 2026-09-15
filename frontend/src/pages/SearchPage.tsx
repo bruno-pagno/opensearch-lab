@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { QueryLog } from '../components/QueryLog'
+import { navigate } from '../utils/navigate'
 
 interface Listing {
   id: string
@@ -196,12 +197,19 @@ export default function SearchPage() {
           <p className="text-center text-foggy text-sm mt-4">
             Go to{' '}
             <button
-              onClick={() => { window.location.hash = '#/admin' }}
+              onClick={() => navigate('/admin')}
               className="text-rausch font-medium hover:underline"
             >
               Admin
             </button>
-            {' '}to seed the listings dataset if you haven't already.
+            {' '}to seed the listings dataset, or visit{' '}
+            <button
+              onClick={() => navigate('/learn')}
+              className="text-balearic font-medium hover:underline"
+            >
+              Learn
+            </button>
+            {' '}to explore OpenSearch concepts.
           </p>
         )}
       </div>

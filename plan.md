@@ -1,78 +1,82 @@
-# Project Plan
+# Project plan
 
 ## Goal
 
-Build a deep, practical understanding of OpenSearch infrastructure — not just how to query it, but how to operate it. Cluster management, metrics, shard allocation, ILM, and performance tuning are the primary focus. Search features come last.
+Build practical understanding of operating an OpenSearch cluster. The focus is cluster management, shard allocation, metrics, and index lifecycle. Search features exist as a demo layer, not the primary goal.
 
 ---
 
-## Current Phase: Phase 2 — Index Management
+## What's built
 
-### What's implemented
-
-**Backend**
-- `OpenSearchClientFactory` — creates both a high-level `OpenSearchClient` (typed API) and a low-level `RestClient` (raw HTTP)
-- `ClusterService` — wraps three cluster APIs:
-  - `_cluster/health` → status, shard counts, node counts
-  - `_nodes/info` + `_nodes/stats` → node roles, heap usage, disk usage
-  - `_cluster/settings` → persistent and transient settings
-- `ClusterRoutes` — registers the three endpoints on Javalin (`/api/cluster/*`)
-- `Main` — wires everything together, starts on port 8080
-
-**Frontend**
-- Cluster Dashboard with auto-refresh every 10 seconds
-  - Health badge (green / yellow / red)
-  - Shard breakdown (active, primary, relocating, unassigned)
-  - Node cards with roles, heap bar, disk bar
-  - Settings table (persistent vs transient)
-
-**Infrastructure**
-- Docker Compose: OpenSearch 2.17 + OpenSearch Dashboards + backend + frontend
-- Backend built with Bazel inside Docker (fat JAR → JRE image)
-- Frontend built with Vite → served by nginx
+### Infrastructure
+- Docker Compose: OpenSearch 2.17, OpenSearch Dashboards, Java backend, React frontend
+- Backend: Java 21 + Javalin, Maven fat JAR, built inside Docker
+- Frontend: React + Vite + TypeScript + Tailwind, served by nginx
 - nginx proxies `/api/` to the backend
+- HTML5 History API routing (`/admin`, `/learn`, `/labs`)
+- Index template applied at startup sets `number_of_replicas: 0` on all indices (keeps the single-node cluster green)
+
+### Admin (`/admin`)
+- Cluster tab: health banner (green/yellow/red), shard counts, node cards with heap/disk bars, cluster settings
+- Indices tab: list indices, create/delete, view mappings, seed the listings dataset
+- Metrics tab: JVM heap and GC, disk usage, index throughput (polling every 10s)
+
+### Search (`/`)
+- `multi_match` with fuzziness over 15 Airbnb listings
+- Query log panel shows the executed OpenSearch JSON, auto-dismisses after 5s, pauses on hover
+
+### Learn (`/learn`)
+- Seven concept sections: cluster, nodes, indices, shards, replicas, documents, mapping
+- Each section has a visual diagram and DevTools commands for the live cluster
+
+### Labs (`/labs`)
+- Lab 1 (Unassigned Replicas): 7-step interactive incident. Set replicas to 1, watch the cluster go yellow, run `GET /_cluster/allocation/explain`, fix it. Each step calls the real backend API and shows the live response.
+- Coming: Disk Watermark Breach, Circuit Breaker Trip
 
 ---
 
-## Next Steps
+## Backend API
 
-### Phase 2 — Index Management ✅ Done
-- Create, delete indices with configurable shards/replicas
-- Define explicit mappings for the Listing document (text, keyword, geo_point, date, nested)
-- Index settings: `number_of_shards`, `number_of_replicas`, `refresh_interval`
-- Index templates and component templates
-- Aliases: write alias, read alias, zero-downtime reindex pattern
-- UI: index browser — list indices, inspect mapping, view settings
+```
+GET  /api/cluster/health
+GET  /api/cluster/nodes
+GET  /api/cluster/settings
+GET  /api/cluster/allocation/explain
+GET  /api/cluster/shards/{index}
 
-### Phase 3 — Metrics & Monitoring
-- `_cluster/stats` — cluster-wide metrics
-- `_nodes/stats` — JVM heap, GC, thread pools, circuit breakers per node
-- `_stats` — per-index: docs count, store size, indexing rate, search rate, refresh/merge time
-- `_cat/indices`, `_cat/shards`, `_cat/nodes`, `_cat/thread_pool`
-- `_nodes/hot_threads` — diagnosing CPU spikes
-- UI: metrics dashboard with time-series feel (polling)
+GET  /api/indices
+POST /api/indices
+DELETE /api/indices/{name}
+GET  /api/indices/{name}/mapping
+PUT  /api/indices/{name}/replicas
+POST /api/indices/seed/listings
 
-### Phase 4 — Shard Management
-- `_cluster/allocation/explain` — why a shard is unassigned
-- Shard states: STARTED, INITIALIZING, RELOCATING, UNASSIGNED
-- Allocation filtering: include/exclude/require rules, rack awareness
-- Manual reroute API
+GET  /api/metrics/cluster-stats
+GET  /api/metrics/nodes
+GET  /api/metrics/index-stats
 
-### Phase 5 — Index Lifecycle Management (ILM)
-- Create policies with hot / warm / cold / delete phases
-- Rollover conditions: age, doc count, size
-- Write alias pattern for rollover
-- Apply to a Listing-views event stream
+GET  /api/search/listings?q={query}
+```
 
-### Phase 6 — Performance & Operations
-- Bulk indexing: batch sizes, error handling, partial failures
-- `refresh_interval` tuning: near-real-time vs throughput trade-off
-- Force merge, `max_num_segments`
-- Circuit breakers: request / fielddata / parent
-- Indexing pressure and back-pressure (`_nodes/stats/indexing_pressure`)
+---
 
-### Phase 7 — Search (last)
-- Basic queries: match, term, bool, range
-- Full-text analysis: analyzers, tokenizers, the Analyze API
-- Relevance scoring: BM25, Explain API, function_score
-- Aggregations: terms, range, stats, nested
+## Next
+
+### Search filters and scoring
+- Expose `_score` on each search result card
+- Add filters: room type, price range, amenities, min rating
+- Multiple query modes: `best_fields`, `most_fields`, `cross_fields`, `phrase`
+
+### Shard allocation (phase 4)
+- Shard map in admin: which shard lives on which node, colored by state
+- Manual reroute via API
+
+### ILM (phase 5)
+- Create a hot/warm/cold policy
+- Rollover on the listings index
+- Show phase transitions in the UI
+
+### Performance (phase 6)
+- Bulk indexing benchmark: adjustable batch size, measure docs/sec
+- `refresh_interval` tuning demo
+- Circuit breaker state in the metrics tab

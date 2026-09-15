@@ -23,6 +23,13 @@ public class IndexRoutes {
             ctx.json(service.mapping(ctx.pathParam("name")))
         );
 
+        app.put("/api/indices/{name}/replicas", ctx -> {
+            var body = ctx.bodyAsClass(java.util.Map.class);
+            int count = ((Number) body.get("count")).intValue();
+            service.setReplicas(ctx.pathParam("name"), count);
+            ctx.status(200).json(java.util.Map.of("ok", true));
+        });
+
         app.post("/api/indices/seed/listings", ctx -> {
             service.seedListings();
             ctx.status(200).json(java.util.Map.of("seeded", "airbnb-listings"));
