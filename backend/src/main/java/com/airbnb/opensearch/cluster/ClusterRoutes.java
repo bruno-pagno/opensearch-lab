@@ -10,5 +10,7 @@ public class ClusterRoutes {
         app.get("/api/cluster/settings", ctx -> ctx.json(service.settings()));
         app.get("/api/cluster/allocation/explain", ctx -> ctx.json(service.allocationExplain()));
         app.get("/api/cluster/shards/{index}", ctx -> ctx.json(service.shards(ctx.pathParam("index"))));
+        app.put("/api/cluster/settings", ctx -> ctx.json(service.updateSettings(ctx.body())));
+        app.get("/api/cluster/disk-allocation", ctx -> ctx.json(service.diskAllocation()));
     }
 }

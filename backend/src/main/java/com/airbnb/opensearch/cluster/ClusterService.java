@@ -123,4 +123,20 @@ public class ClusterService {
             (Map<String, Object>) raw.get("transient")
         );
     }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> updateSettings(String body) throws IOException {
+        var request = new Request("PUT", "/_cluster/settings");
+        request.setJsonEntity(body);
+        var response = restClient.performRequest(request);
+        return mapper.readValue(response.getEntity().getContent(), Map.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> diskAllocation() throws IOException {
+        var response = restClient.performRequest(
+            new Request("GET", "/_cat/allocation?format=json&h=node,disk.indices,disk.used,disk.avail,disk.total,disk.percent,shards")
+        );
+        return mapper.readValue(response.getEntity().getContent(), List.class);
+    }
 }

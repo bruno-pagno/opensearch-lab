@@ -49,13 +49,13 @@ export default function LabsPage() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <a href="/learn" onClick={e => { e.preventDefault(); navigate('/learn') }} className="text-sm text-foggy hover:text-balearic font-medium transition-colors">Learn</a>
-          <a href="/" onClick={e => { e.preventDefault(); navigate('/') }} className="text-sm text-foggy hover:text-rausch font-medium transition-colors flex items-center gap-1">
+          <button onClick={() => navigate('/learn')} className="text-sm text-foggy hover:text-balearic font-medium transition-colors">Learn</button>
+          <button onClick={() => navigate('/')} className="text-sm text-foggy hover:text-rausch font-medium transition-colors flex items-center gap-1">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to search
-          </a>
+          </button>
         </div>
       </header>
 
@@ -63,7 +63,7 @@ export default function LabsPage() {
         <div className="mb-10">
           <h2 className="text-3xl font-bold text-hof mb-3">Incident Labs</h2>
           <p className="text-foggy max-w-2xl">
-            Hands-on simulations of real OpenSearch incidents. Each lab walks you through breaking something, diagnosing it with the actual APIs, and recovering — the same workflow you'd use in production.
+            Hands-on simulations of real OpenSearch incidents. Each lab walks you through breaking something, diagnosing it with the actual APIs, and recovering — the same workflow you would use in production.
           </p>
         </div>
 
@@ -83,7 +83,7 @@ export default function LabsPage() {
                 </span>
               </div>
 
-              <div className="mb-1 flex items-center gap-2">
+              <div className="mb-1">
                 <span className="text-xs font-bold text-foggy">Lab {lab.number}</span>
               </div>
               <h3 className="text-lg font-bold text-hof mb-2 group-hover:text-rausch transition-colors">{lab.title}</h3>
@@ -105,27 +105,6 @@ export default function LabsPage() {
                 </svg>
               </div>
             </button>
-          ))}
-
-          {/* Placeholder for upcoming labs */}
-          {[
-            { title: 'Disk Watermark Breach', tags: ['disk', 'allocation', 'watermarks'] },
-            { title: 'Circuit Breaker Trip', tags: ['memory', 'jvm', 'circuit breaker'] },
-          ].map(p => (
-            <div key={p.title} className="bg-white rounded-2xl border border-dashed border-gray-200 p-6 opacity-50">
-              <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </div>
-              <span className="text-xs font-bold text-foggy">Coming soon</span>
-              <h3 className="text-lg font-bold text-gray-400 mt-1 mb-2">{p.title}</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {p.tags.map(t => (
-                  <span key={t} className="text-[11px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">{t}</span>
-                ))}
-              </div>
-            </div>
           ))}
         </div>
       </div>
